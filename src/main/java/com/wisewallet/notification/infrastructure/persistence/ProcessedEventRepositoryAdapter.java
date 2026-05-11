@@ -20,11 +20,6 @@ public class ProcessedEventRepositoryAdapter implements ProcessedEventRepository
     }
 
     @Override
-    public boolean existsByEventId(UUID eventId) {
-        return jpaRepository.existsByEventId(eventId);
-    }
-
-    @Override
     public int deleteByProcessedAtBefore(Instant cutoff) {
         return jpaRepository.deleteByProcessedAtBefore(cutoff);
     }

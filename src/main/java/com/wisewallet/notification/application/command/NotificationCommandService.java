@@ -1,7 +1,6 @@
 package com.wisewallet.notification.application.command;
 
 import com.wisewallet.notification.application.query.PreferenceQueryService;
-import com.wisewallet.notification.application.shared.IdempotencyChecker;
 import com.wisewallet.notification.domain.event.AlertTriggeredDomainEvent;
 import com.wisewallet.notification.domain.event.NotificationDispatchEvent;
 import com.wisewallet.notification.domain.model.*;
@@ -11,6 +10,7 @@ import com.wisewallet.notification.domain.service.NotificationContentResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +29,6 @@ public class NotificationCommandService {
     private final NotificationRepositoryPort notificationRepository;
     private final ProcessedEventRepositoryPort processedEventRepository;
     private final PreferenceQueryService preferenceQueryService;
-    private final IdempotencyChecker idempotencyChecker;
     private final ApplicationEventPublisher eventPublisher;
     private final NotificationContentResolver contentResolver;
 
@@ -42,7 +41,15 @@ public class NotificationCommandService {
                              EventType eventType,
                              UUID userId,
                              Map<String, Object> eventData) {
-        if (idempotencyChecker.alreadyProcessed(eventId)) {
+        // Insert-first idempotency: unique constraint on event_id prevents duplicates.
+        // Concurrent duplicates hit the constraint rather than a check-then-act race.
+        try {
+            processedEventRepository.save(ProcessedEvent.builder()
+                    .id(UUID.randomUUID())
+                    .eventId(eventId)
+                    .eventType(eventType.name())
+                    .build());
+        } catch (DataIntegrityViolationException ex) {
             log.debug("Skipping already-processed event: {}", eventId);
             return;
         }
@@ -52,13 +59,6 @@ public class NotificationCommandService {
 
         // resolve enabled channels
         List<NotificationChannel> channels = preferenceQueryService.getEnabledChannels(userId, eventType);
-
-        // persist processed_event + notifications in same transaction
-        processedEventRepository.save(ProcessedEvent.builder()
-                .id(UUID.randomUUID())
-                .eventId(eventId)
-                .eventType(eventType.name())
-                .build());
 
         List<UUID> notificationIds = new ArrayList<>();
         for (NotificationChannel channel : channels) {

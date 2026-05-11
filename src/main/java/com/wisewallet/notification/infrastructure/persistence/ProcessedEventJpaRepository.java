@@ -11,8 +11,6 @@ import java.util.UUID;
 
 interface ProcessedEventJpaRepository extends JpaRepository<ProcessedEvent, UUID> {
 
-    boolean existsByEventId(UUID eventId);
-
     @Modifying
     @Query("DELETE FROM ProcessedEvent e WHERE e.processedAt < :cutoff")
     int deleteByProcessedAtBefore(@Param("cutoff") Instant cutoff);
