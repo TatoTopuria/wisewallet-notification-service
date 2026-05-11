@@ -63,6 +63,11 @@ dependencies {
     runtimeOnly(libs.postgresql)
     implementation(libs.liquibase.core)
 
+    // JJWT
+    implementation(libs.jjwt.api)
+    runtimeOnly(libs.jjwt.impl)
+    runtimeOnly(libs.jjwt.jackson)
+
     // Observability
     runtimeOnly(libs.micrometer.prometheus)
     implementation(libs.logstash.logback.encoder)

@@ -28,6 +28,8 @@ account:
 wisewallet:
   internal:
     api-key: ${INTERNAL_API_KEY:dev-internal-key}
+    jwt:
+      secret: ${INTERNAL_JWT_SECRET:local-dev-internal-jwt-secret-needs-32chars!}
 
 logging:
   level:

@@ -52,6 +52,9 @@ management:
         enabled: true
 
 wisewallet:
+  internal:
+    jwt:
+      secret: ${INTERNAL_JWT_SECRET}
   notification:
     kafka:
       topics:
