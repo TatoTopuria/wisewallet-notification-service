@@ -1,0 +1,97 @@
+spring:
+  application:
+    name: notification-service
+  threads:
+    virtual:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+  kafka:
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.wisewallet.*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        retries: 3
+
+server:
+  port: 8083
+  error:
+    include-message: always
+    include-binding-errors: always
+
+management:
+  server:
+    port: 8093
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+wisewallet:
+  notification:
+    kafka:
+      topics:
+        account-created: account.created
+        balance-low: account.balance-low
+        txn-created: txn.created
+        txn-categorized: txn.categorized
+        alert-triggered: alert.triggered
+      consumer:
+        account-concurrency: 1
+        transaction-concurrency: 3
+    sns:
+      topic-arn: ${SNS_TOPIC_ARN:arn:aws:sns:us-east-1:000000000000:wisewallet-notifications}
+    outbox:
+      poll-fixed-delay-ms: 2000
+      batch-size: 50
+      max-retries: 5
+    retry:
+      pending-check-interval-ms: 30000
+      max-sns-retries: 5
+    cleanup:
+      processed-events-retention-days: 7
+
+account:
+  service:
+    url: ${ACCOUNT_SERVICE_URL:http://localhost:8081}
+
+spring.cloud.openfeign.circuitbreaker.enabled: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      accountService:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+
+spring.cache.type: caffeine
+spring.cache.caffeine.spec: maximumSize=1000,expireAfterWrite=300s
+
+logging:
+  level:
+    com.wisewallet.notification: INFO

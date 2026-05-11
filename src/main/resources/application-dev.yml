@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+  cloud:
+    aws:
+      secretsmanager:
+        enabled: true
+
+wisewallet:
+  notification:
+    sns:
+      topic-arn: ${SNS_TOPIC_ARN}
+  internal:
+    api-key: ${INTERNAL_API_KEY}
+
+account:
+  service:
+    url: ${ACCOUNT_SERVICE_URL}

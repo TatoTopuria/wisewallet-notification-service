@@ -1,0 +1,14 @@
+spring:
+  cloud:
+    aws:
+      credentials:
+        instance-profile: false
+      secretsmanager:
+        enabled: false
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail:
+        smtp:
+          auth: false

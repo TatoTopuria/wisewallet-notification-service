@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="002-create-notification-preferences-table" author="wisewallet">
+        <sql>
+            CREATE TABLE notification_preferences (
+                id          UUID PRIMARY KEY,
+                user_id     UUID         NOT NULL,
+                event_type  VARCHAR(50)  NOT NULL,
+                channel     VARCHAR(20)  NOT NULL,
+                enabled     BOOLEAN      NOT NULL DEFAULT TRUE,
+                created_at  TIMESTAMP    NOT NULL DEFAULT NOW(),
+                updated_at  TIMESTAMP    NOT NULL DEFAULT NOW(),
+
+                CONSTRAINT uq_pref_user_event_channel UNIQUE (user_id, event_type, channel)
+            );
+
+            CREATE INDEX idx_preferences_user
+                ON notification_preferences (user_id);
+        </sql>
+        <rollback>
+            DROP TABLE IF EXISTS notification_preferences;
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

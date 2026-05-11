@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="001-create-notifications-table" author="wisewallet">
+        <sql>
+            CREATE TABLE notifications (
+                id          UUID PRIMARY KEY,
+                user_id     UUID NOT NULL,
+                event_id    UUID NOT NULL,
+                event_type  VARCHAR(50)  NOT NULL,
+                channel     VARCHAR(20)  NOT NULL,
+                title       VARCHAR(500) NOT NULL,
+                body        TEXT         NOT NULL,
+                metadata    JSONB,
+                status      VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
+                retry_count INT          NOT NULL DEFAULT 0,
+                created_at  TIMESTAMP    NOT NULL DEFAULT NOW(),
+                updated_at  TIMESTAMP    NOT NULL DEFAULT NOW(),
+                sent_at     TIMESTAMP,
+                read_at     TIMESTAMP
+            );
+
+            CREATE INDEX idx_notifications_user_created
+                ON notifications (user_id, created_at DESC);
+
+            CREATE INDEX idx_notifications_user_status
+                ON notifications (user_id, status)
+                WHERE status = 'UNREAD';
+
+            CREATE UNIQUE INDEX idx_notifications_event_channel
+                ON notifications (event_id, channel);
+
+            CREATE INDEX idx_notifications_pending
+                ON notifications (status, created_at)
+                WHERE status = 'PENDING';
+        </sql>
+        <rollback>
+            DROP TABLE IF EXISTS notifications;
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
