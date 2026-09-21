@@ -41,7 +41,7 @@ class ThymeleafTemplateRendererTest {
 
     @Test
     void render_emptyVariables_delegatesToEngine() {
-        when(templateEngine.process(any(), any())).thenReturn("<html/>");
+        when(templateEngine.process(any(String.class), any(Context.class))).thenReturn("<html/>");
 
         String result = renderer.render("email/balance-low", Map.of());
 
