@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.Instant;
 import java.util.UUID;
 
-interface ProcessedEventJpaRepository extends JpaRepository<ProcessedEvent, UUID> {
+public interface ProcessedEventJpaRepository extends JpaRepository<ProcessedEvent, UUID> {
 
     @Modifying
     @Query("DELETE FROM ProcessedEvent e WHERE e.processedAt < :cutoff")

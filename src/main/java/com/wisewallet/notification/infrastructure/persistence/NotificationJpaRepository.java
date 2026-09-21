@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-interface NotificationJpaRepository extends JpaRepository<Notification, UUID> {
+public interface NotificationJpaRepository extends JpaRepository<Notification, UUID> {
 
     Page<Notification> findByUserId(UUID userId, Pageable pageable);
 

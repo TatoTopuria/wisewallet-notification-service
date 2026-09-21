@@ -7,7 +7,6 @@ import com.wisewallet.notification.domain.repository.NotificationRepositoryPort;
 import com.wisewallet.notification.domain.repository.ProcessedEventRepositoryPort;
 import com.wisewallet.notification.domain.service.NotificationContentResolver;
 import com.wisewallet.notification.application.query.PreferenceQueryService;
-import com.wisewallet.notification.application.shared.IdempotencyChecker;
 import com.wisewallet.notification.domain.exception.NotificationNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 import java.util.Map;
@@ -33,7 +33,6 @@ class NotificationCommandServiceTest {
     @Mock NotificationRepositoryPort notificationRepository;
     @Mock ProcessedEventRepositoryPort processedEventRepository;
     @Mock PreferenceQueryService preferenceQueryService;
-    @Mock IdempotencyChecker idempotencyChecker;
     @Mock ApplicationEventPublisher eventPublisher;
     @Mock NotificationContentResolver contentResolver;
 
@@ -43,11 +42,12 @@ class NotificationCommandServiceTest {
     @Test
     void processEvent_skipsWhenAlreadyProcessed() {
         UUID eventId = UUID.randomUUID();
-        when(idempotencyChecker.alreadyProcessed(eventId)).thenReturn(true);
+        when(processedEventRepository.save(any(ProcessedEvent.class)))
+                .thenThrow(new DataIntegrityViolationException("duplicate event"));
 
         service.processEvent(eventId, EventType.ACCOUNT_CREATED, UUID.randomUUID(), Map.of());
 
-        verifyNoInteractions(notificationRepository, processedEventRepository, eventPublisher);
+        verifyNoInteractions(notificationRepository, eventPublisher);
     }
 
     @Test
@@ -56,7 +56,6 @@ class NotificationCommandServiceTest {
         UUID userId = UUID.randomUUID();
         Map<String, Object> eventData = Map.of("accountType", "CHECKING");
 
-        when(idempotencyChecker.alreadyProcessed(eventId)).thenReturn(false);
         when(contentResolver.resolve(EventType.ACCOUNT_CREATED, eventData))
                 .thenReturn(new NotificationContentResolver.NotificationContent("Account Created", "Your account was created."));
         when(preferenceQueryService.getEnabledChannels(userId, EventType.ACCOUNT_CREATED))
@@ -80,7 +79,6 @@ class NotificationCommandServiceTest {
         UUID eventId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        when(idempotencyChecker.alreadyProcessed(eventId)).thenReturn(false);
         when(contentResolver.resolve(any(), any()))
                 .thenReturn(new NotificationContentResolver.NotificationContent("title", "body"));
         when(preferenceQueryService.getEnabledChannels(userId, EventType.TXN_CREATED))
@@ -100,7 +98,6 @@ class NotificationCommandServiceTest {
         UUID eventId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        when(idempotencyChecker.alreadyProcessed(eventId)).thenReturn(false);
         when(contentResolver.resolve(any(), any()))
                 .thenReturn(new NotificationContentResolver.NotificationContent("title", "body"));
         when(preferenceQueryService.getEnabledChannels(userId, EventType.TXN_CREATED))
@@ -126,7 +123,6 @@ class NotificationCommandServiceTest {
                 "threshold", "100.00"
         );
 
-        when(idempotencyChecker.alreadyProcessed(eventId)).thenReturn(false);
         when(contentResolver.resolve(any(), any()))
                 .thenReturn(new NotificationContentResolver.NotificationContent("Low Balance", "Balance is low"));
         when(preferenceQueryService.getEnabledChannels(userId, EventType.BALANCE_LOW))
@@ -149,7 +145,6 @@ class NotificationCommandServiceTest {
         UUID eventId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        when(idempotencyChecker.alreadyProcessed(eventId)).thenReturn(false);
         when(contentResolver.resolve(any(), any()))
                 .thenReturn(new NotificationContentResolver.NotificationContent("title", "body"));
         when(preferenceQueryService.getEnabledChannels(any(), any()))
@@ -169,7 +164,6 @@ class NotificationCommandServiceTest {
         UUID eventId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
 
-        when(idempotencyChecker.alreadyProcessed(eventId)).thenReturn(false);
         when(contentResolver.resolve(any(), any()))
                 .thenReturn(new NotificationContentResolver.NotificationContent("title", "body"));
         when(preferenceQueryService.getEnabledChannels(any(), any())).thenReturn(List.of());
