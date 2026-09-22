@@ -41,8 +41,11 @@ public class NotificationCommandService {
                              EventType eventType,
                              UUID userId,
                              Map<String, Object> eventData) {
-        // Insert-first idempotency: unique constraint on event_id prevents duplicates.
-        // Concurrent duplicates hit the constraint rather than a check-then-act race.
+        if (processedEventRepository.existsByEventId(eventId)) {
+            log.debug("Skipping already-processed event: {}", eventId);
+            return;
+        }
+
         try {
             processedEventRepository.save(ProcessedEvent.builder()
                     .id(UUID.randomUUID())

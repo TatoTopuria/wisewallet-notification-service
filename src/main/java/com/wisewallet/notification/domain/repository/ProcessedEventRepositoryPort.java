@@ -6,5 +6,6 @@ import java.time.Instant;
 
 public interface ProcessedEventRepositoryPort {
     ProcessedEvent save(ProcessedEvent event);
+    boolean existsByEventId(java.util.UUID eventId);
     int deleteByProcessedAtBefore(Instant cutoff);
 }
