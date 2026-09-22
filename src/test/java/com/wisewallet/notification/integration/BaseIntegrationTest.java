@@ -15,8 +15,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 
 /**
@@ -25,16 +23,18 @@ import org.testcontainers.kafka.KafkaContainer;
  * AWS auto-configuration is disabled via application-test.yml.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Testcontainers
 @ActiveProfiles("test")
 public abstract class BaseIntegrationTest {
 
-    @Container
     @ServiceConnection
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
-    @Container
     static KafkaContainer kafka = new KafkaContainer("apache/kafka-native:3.8.0");
+
+    static {
+        postgres.start();
+        kafka.start();
+    }
 
     static WireMockServer wireMock = new WireMockServer(0);
 
