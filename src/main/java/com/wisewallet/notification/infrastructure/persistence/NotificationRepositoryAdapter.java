@@ -1,5 +1,6 @@
 package com.wisewallet.notification.infrastructure.persistence;
 
+import com.wisewallet.notification.application.port.out.NotificationQueryRepositoryPort;
 import com.wisewallet.notification.domain.model.Notification;
 import com.wisewallet.notification.domain.repository.NotificationRepositoryPort;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
-public class NotificationRepositoryAdapter implements NotificationRepositoryPort {
+public class NotificationRepositoryAdapter implements NotificationRepositoryPort, NotificationQueryRepositoryPort {
 
     private final NotificationJpaRepository jpaRepository;
 

@@ -100,8 +100,6 @@ class PreferenceCommandServiceTest {
     @Test
     void upsertPreferences_throwsOnInvalidChannel() {
         UUID userId = UUID.randomUUID();
-        when(preferenceRepository.findByUserIdAndEventTypeAndChannel(any(), any(), any()))
-                .thenReturn(Optional.empty());
         var entry = new PreferenceCommandService.PreferenceEntry("ACCOUNT_CREATED", "INVALID_CHANNEL", true);
 
         assertThatThrownBy(() -> service.upsertPreferences(userId, List.of(entry)))

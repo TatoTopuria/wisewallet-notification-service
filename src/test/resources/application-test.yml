@@ -12,3 +12,10 @@ spring:
       mail:
         smtp:
           auth: false
+
+wisewallet:
+  internal:
+    jwt:
+      secret: default-internal-jwt-secret-min-32-chars-for-test!
+    api-key: default-internal-api-key
+
